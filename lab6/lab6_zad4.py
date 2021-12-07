@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 
 from glfw.GLFW import *
@@ -7,6 +6,8 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 from PIL import Image
+
+from math import sin, cos, pi
 
 
 viewer = [0.0, 0.0, 10.0]
@@ -31,6 +32,14 @@ light_position = [0.0, 0.0, 10.0, 1.0]
 att_constant = 1.0
 att_linear = 0.05
 att_quadratic = 0.001
+
+image = Image.open("lab6/tekstura.tga")
+leosia = Image.open("lab6/leosia.tga")
+isLeosia = False
+
+
+N = 20
+vertices = [[[0, 0, 0] for _ in range(N)] for _ in range(N)]
 
 
 def startup():
@@ -62,17 +71,32 @@ def startup():
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-    image = Image.open("lab6/tekstura.tga")
 
     glTexImage2D(
         GL_TEXTURE_2D, 0, 3, image.size[0], image.size[1], 0,
         GL_RGB, GL_UNSIGNED_BYTE, image.tobytes("raw", "RGB", 0, -1)
     )
+    
+    global vertices
+    u_arr = [i/(N-1) for i in range(N)]
+    v_arr = [i/(N-1) for i in range(N)]
+    for i, u in enumerate(u_arr): #u
+        for j, v in enumerate(v_arr): #v
+            vertices[i][j] = [x(u, v), y(u, v), z(u, v)]
 
 
 def shutdown():
     pass
 
+
+def x(u, v):
+    return (-90*u**5 + 225*u**4 - 270*u**3 + 180*u**2 - 45*u) * cos(pi*v)
+
+def y(u, v):
+    return 160*u**4 - 320*u**3 + 160*u**2 -5 #-5 to center the egg
+
+def z(u, v):
+    return (-90*u**5 + 225*u**4 - 270*u**3 + 180*u**2 - 45*u) * sin(pi*v)
 
 def render(time):
     global theta
@@ -88,16 +112,63 @@ def render(time):
 
     glRotatef(theta, 0.0, 1.0, 0.0)
 
-    glBegin(GL_TRIANGLES)
-    glTexCoord2f(0.0, 0.0)
-    glVertex3f(-5.0, -5.0, 0.0)
-    glTexCoord2f(1.0, 0.0)
-    glVertex3f(5.0, -5.0, 0.0)
-    glTexCoord2f(0.5, 1.0)
-    glVertex3f(0.0, 5.0, 0.0)
-    glEnd()
+    # egg_strips()
+    egg_triangles()
 
     glFlush()
+
+
+def egg_strips():
+    for i in range(N-1):
+        if i < N/2:
+            glBegin(GL_TRIANGLE_STRIP)
+            for j in range(N-1):
+                glTexCoord(i/(N-1), j/(N-1))
+                glVertex3fv(vertices[i][j])
+                glTexCoord((i+1)/(N-1), j/(N-1))
+                glVertex3fv(vertices[i+1][j])
+            glTexCoord(i/(N-1), 1)
+            glVertex3fv(vertices[i][N-1])
+            glTexCoord((i+1)/(N-1), 1)
+            glVertex3fv(vertices[i+1][N-1])
+            glEnd()
+
+def egg_triangles():
+    glBegin(GL_TRIANGLES)
+
+    for i in range(N-1):
+        for j in range(N-1):
+            if i < N/2:
+                glTexCoord(i/(N-1), j/(N-1))
+                glVertex3fv(vertices[i][j])
+                glTexCoord((i+1)/(N-1), j/(N-1))
+                glVertex3fv(vertices[i+1][j])
+                glTexCoord(i/(N-1), (j+1)/(N-1))
+                glVertex3fv(vertices[i][j+1])
+
+                glTexCoord((i+1)/(N-1), j/(N-1))
+                glVertex3fv(vertices[i+1][j])
+                glTexCoord((i+1)/(N-1), (j+1)/(N-1))
+                glVertex3fv(vertices[i+1][j+1])
+                glTexCoord(i/(N-1), (j+1)/(N-1))
+                glVertex3fv(vertices[i][j+1])
+            else:
+                glTexCoord(i/(N-1), j/(N-1))
+                glVertex3fv(vertices[i][j])
+                glTexCoord(i/(N-1), (j+1)/(N-1))
+                glVertex3fv(vertices[i][j+1])
+                glTexCoord((i+1)/(N-1), j/(N-1))
+                glVertex3fv(vertices[i+1][j])
+
+                glTexCoord((i+1)/(N-1), j/(N-1))
+                glVertex3fv(vertices[i+1][j])
+                glTexCoord(i/(N-1), (j+1)/(N-1))
+                glVertex3fv(vertices[i][j+1])
+                glTexCoord((i+1)/(N-1), (j+1)/(N-1))
+                glVertex3fv(vertices[i+1][j+1])
+
+
+    glEnd()
 
 
 def update_viewport(window, width, height):
@@ -119,8 +190,23 @@ def update_viewport(window, width, height):
 
 
 def keyboard_key_callback(window, key, scancode, action, mods):
+    global isLeosia
     if key == GLFW_KEY_ESCAPE and action == GLFW_PRESS:
         glfwSetWindowShouldClose(window, GLFW_TRUE)
+    if key == GLFW_KEY_SPACE and action == GLFW_PRESS:
+        if isLeosia:
+            glTexImage2D(
+                GL_TEXTURE_2D, 0, 3, leosia.size[0], leosia.size[1], 0,
+                GL_RGB, GL_UNSIGNED_BYTE, leosia.tobytes("raw", "RGB", 0, -1)
+            )
+        else:
+            glTexImage2D(
+                GL_TEXTURE_2D, 0, 3, image.size[0], image.size[1], 0,
+                GL_RGB, GL_UNSIGNED_BYTE, image.tobytes("raw", "RGB", 0, -1)
+            )
+        isLeosia = not isLeosia
+
+
 
 
 def mouse_motion_callback(window, x_pos, y_pos):

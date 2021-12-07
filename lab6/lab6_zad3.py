@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 
 from glfw.GLFW import *
@@ -32,6 +31,10 @@ att_constant = 1.0
 att_linear = 0.05
 att_quadratic = 0.001
 
+image = Image.open("lab6/tekstura.tga")
+leosia = Image.open("lab6/leosia.tga")
+isLeosia = False
+
 
 def startup():
     update_viewport(None, 400, 400)
@@ -62,7 +65,6 @@ def startup():
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-    image = Image.open("lab6/tekstura.tga")
 
     glTexImage2D(
         GL_TEXTURE_2D, 0, 3, image.size[0], image.size[1], 0,
@@ -89,14 +91,52 @@ def render(time):
     glRotatef(theta, 0.0, 1.0, 0.0)
 
     glBegin(GL_TRIANGLES)
+    #SQUARE
     glTexCoord2f(0.0, 0.0)
     glVertex3f(-5.0, -5.0, 0.0)
     glTexCoord2f(1.0, 0.0)
     glVertex3f(5.0, -5.0, 0.0)
-    glTexCoord2f(0.5, 1.0)
-    glVertex3f(0.0, 5.0, 0.0)
-    glEnd()
+    glTexCoord2f(1.0, 1.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(-5.0, -5.0, 0.0)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3f(-5.0, 5.0, 0.0)
+    #END SQUARE
 
+    #FACES
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(5.0, -5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(-5.0, -5.0, 0.0)
+
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(5.0, -5.0, 0.0)
+
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(-5.0, 5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(5.0, 5.0, 0.0)
+
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(-5.0, -5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(-5.0, 5.0, 0.0)
+    #END FACES
+    glEnd()
     glFlush()
 
 
@@ -119,8 +159,23 @@ def update_viewport(window, width, height):
 
 
 def keyboard_key_callback(window, key, scancode, action, mods):
+    global isLeosia
     if key == GLFW_KEY_ESCAPE and action == GLFW_PRESS:
         glfwSetWindowShouldClose(window, GLFW_TRUE)
+    if key == GLFW_KEY_SPACE and action == GLFW_PRESS:
+        if isLeosia:
+            glTexImage2D(
+                GL_TEXTURE_2D, 0, 3, leosia.size[0], leosia.size[1], 0,
+                GL_RGB, GL_UNSIGNED_BYTE, leosia.tobytes("raw", "RGB", 0, -1)
+            )
+        else:
+            glTexImage2D(
+                GL_TEXTURE_2D, 0, 3, image.size[0], image.size[1], 0,
+                GL_RGB, GL_UNSIGNED_BYTE, image.tobytes("raw", "RGB", 0, -1)
+            )
+        isLeosia = not isLeosia
+
+
 
 
 def mouse_motion_callback(window, x_pos, y_pos):

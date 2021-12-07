@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 
 from glfw.GLFW import *
@@ -93,8 +92,16 @@ def render(time):
     glVertex3f(-5.0, -5.0, 0.0)
     glTexCoord2f(1.0, 0.0)
     glVertex3f(5.0, -5.0, 0.0)
-    glTexCoord2f(0.5, 1.0)
-    glVertex3f(0.0, 5.0, 0.0)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(-5.0, -5.0, 0.0)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3f(-5.0, 5.0, 0.0)
+
     glEnd()
 
     glFlush()

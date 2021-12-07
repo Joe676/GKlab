@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 
 from glfw.GLFW import *
@@ -89,14 +88,52 @@ def render(time):
     glRotatef(theta, 0.0, 1.0, 0.0)
 
     glBegin(GL_TRIANGLES)
+    #SQUARE
     glTexCoord2f(0.0, 0.0)
     glVertex3f(-5.0, -5.0, 0.0)
     glTexCoord2f(1.0, 0.0)
     glVertex3f(5.0, -5.0, 0.0)
-    glTexCoord2f(0.5, 1.0)
-    glVertex3f(0.0, 5.0, 0.0)
-    glEnd()
+    glTexCoord2f(1.0, 1.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(-5.0, -5.0, 0.0)
+    glTexCoord2f(1.0, 1.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    glTexCoord2f(0.0, 1.0)
+    glVertex3f(-5.0, 5.0, 0.0)
+    #END SQUARE
 
+    #FACES
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(5.0, -5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(-5.0, -5.0, 0.0)
+
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(5.0, 5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(5.0, -5.0, 0.0)
+
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(-5.0, 5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(5.0, 5.0, 0.0)
+
+    glTexCoord2f(0.5, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glTexCoord2f(0.0, 0.0)
+    glVertex3f(-5.0, -5.0, 0.0)
+    glTexCoord2f(1.0, 0.0)
+    glVertex3f(-5.0, 5.0, 0.0)
+    #END FACES
+    glEnd()
     glFlush()
 
 
