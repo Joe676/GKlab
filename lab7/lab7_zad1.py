@@ -22,6 +22,7 @@ def compile_shaders():
         #version 330 core
 
         in vec4 position;
+        out vec4 vertex_color;
 
         uniform mat4 M_matrix;
         uniform mat4 V_matrix;
@@ -29,16 +30,18 @@ def compile_shaders():
 
         void main(void) {
             gl_Position = P_matrix * V_matrix * M_matrix * position;
+            vertex_color = vec4(1.0, 0.3, 0.7, 1.0);
         }
     """
 
     fragment_shader_source = """
         #version 330 core
 
+        in vec4 vertex_color;
         out vec4 color;
 
         void main(void) {
-            color = vec4(0.7, 0.7, 0.7, 1.0);
+            color = vertex_color;
         }
     """
 

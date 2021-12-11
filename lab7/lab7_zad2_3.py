@@ -22,6 +22,8 @@ def compile_shaders():
         #version 330 core
 
         in vec4 position;
+        in vec4 color;
+        out vec4 vertex_color;
 
         uniform mat4 M_matrix;
         uniform mat4 V_matrix;
@@ -29,16 +31,18 @@ def compile_shaders():
 
         void main(void) {
             gl_Position = P_matrix * V_matrix * M_matrix * position;
+            vertex_color = color;
         }
     """
 
     fragment_shader_source = """
         #version 330 core
 
+        in vec4 vertex_color;
         out vec4 color;
 
         void main(void) {
-            color = vec4(0.7, 0.7, 0.7, 1.0);
+            color = vertex_color;
         }
     """
 
@@ -144,12 +148,72 @@ def startup():
         -0.25, +0.25, -0.25,
     ], dtype='float32')
 
+    vertex_colors = numpy.array([
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0,
+
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0
+    ], dtype='float32')
+
     vertex_buffer = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
     glBufferData(GL_ARRAY_BUFFER, vertex_positions, GL_STATIC_DRAW)
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
     glEnableVertexAttribArray(0)
+
+
+    vertex_buffer = glGenBuffers(1)
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
+    glBufferData(GL_ARRAY_BUFFER, vertex_colors, GL_STATIC_DRAW)
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, None)
+    glEnableVertexAttribArray(1)
+
+
 
 
 def shutdown():
@@ -173,6 +237,7 @@ def render(time):
         glm.vec3(0.0, 0.0, 0.0),
         glm.vec3(0.0, 1.0, 0.0)
     )
+    V_matrix = glm.translate(V_matrix, glm.vec3(-4.5, -4.5, -10.0))
 
     glUseProgram(rendering_program)
 
@@ -183,7 +248,14 @@ def render(time):
     glUniformMatrix4fv(V_location, 1, GL_FALSE, glm.value_ptr(V_matrix))
     glUniformMatrix4fv(P_location, 1, GL_FALSE, glm.value_ptr(P_matrix))
 
-    glDrawArrays(GL_TRIANGLES, 0, 36)
+    # glDrawArrays(GL_TRIANGLES, 0, 36)
+    for i in range(10):
+        for j in range(10):
+            glUniformMatrix4fv(M_location, 1, GL_FALSE, glm.value_ptr(M_matrix))
+            glDrawArrays(GL_TRIANGLES, 0, 36)
+            M_matrix = glm.translate(M_matrix, glm.vec3(1.0, 0.0, 0.0));
+        M_matrix = glm.translate(M_matrix, glm.vec3(-10.0, 1.0, 0.0));
+        # M_matrix = glm.translate(M_matrix, glm.vec3(-10.0, 0.0, 0.0));
 
 
 def update_viewport(window, width, height):

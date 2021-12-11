@@ -16,29 +16,51 @@ vertex_buffer = None
 
 P_matrix = None
 
+mouse_pos = (12.9898,78.233)
+
 
 def compile_shaders():
     vertex_shader_source = """
         #version 330 core
 
         in vec4 position;
+        in vec4 color;
+        out vec4 vertex_color;
 
         uniform mat4 M_matrix;
         uniform mat4 V_matrix;
         uniform mat4 P_matrix;
+        uniform float u_time;
+        uniform vec2 u_mouse;
+        
+        //https://thebookofshaders.com/10/
+        float rand(in vec2 st) {
+            return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * (gl_InstanceID+1));
+        }
+        float rand2(in vec2 st) {
+            return fract(sin(dot(st.xy, vec2(u_time*0.0007,u_time*0.0003))) * (gl_InstanceID+1));
+        }
+        float rand3(in vec2 st) {
+            return fract(sin(dot(st.xy, u_mouse*0.0005)) * (gl_InstanceID+1));
+        }
 
         void main(void) {
-            gl_Position = P_matrix * V_matrix * M_matrix * position;
+            gl_Position = P_matrix * V_matrix * M_matrix * 
+            (position + vec4(gl_InstanceID % 20 + rand(position.xy), gl_InstanceID / 20 + rand(position.xy), rand(position.yx), 0));
+            //(position + vec4(gl_InstanceID % 20 + rand2(position.xy), gl_InstanceID / 20 + rand2(position.xy), rand2(position.yx), 0));
+            //(position + vec4(gl_InstanceID % 20 + rand3(position.xy), gl_InstanceID / 20 + rand3(position.xy), rand3(position.yx), 0));
+            vertex_color = color;
         }
     """
 
     fragment_shader_source = """
         #version 330 core
 
+        in vec4 vertex_color;
         out vec4 color;
 
         void main(void) {
-            color = vec4(0.7, 0.7, 0.7, 1.0);
+            color = vertex_color;
         }
     """
 
@@ -144,12 +166,72 @@ def startup():
         -0.25, +0.25, -0.25,
     ], dtype='float32')
 
+    vertex_colors = numpy.array([
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+        1.0, 0.0, 0.0,
+
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+        1.0, 0.0, 1.0,
+
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+        1.0, 1.0, 0.0,
+
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0,
+
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0,
+        0.0, 1.0, 1.0
+    ], dtype='float32')
+
     vertex_buffer = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
     glBufferData(GL_ARRAY_BUFFER, vertex_positions, GL_STATIC_DRAW)
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, None)
     glEnableVertexAttribArray(0)
+
+
+    vertex_buffer = glGenBuffers(1)
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer)
+    glBufferData(GL_ARRAY_BUFFER, vertex_colors, GL_STATIC_DRAW)
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, None)
+    glEnableVertexAttribArray(1)
+
+
 
 
 def shutdown():
@@ -173,6 +255,7 @@ def render(time):
         glm.vec3(0.0, 0.0, 0.0),
         glm.vec3(0.0, 1.0, 0.0)
     )
+    V_matrix = glm.translate(V_matrix, glm.vec3(-9.5, -9.5, -20.0))
 
     glUseProgram(rendering_program)
 
@@ -183,7 +266,20 @@ def render(time):
     glUniformMatrix4fv(V_location, 1, GL_FALSE, glm.value_ptr(V_matrix))
     glUniformMatrix4fv(P_location, 1, GL_FALSE, glm.value_ptr(P_matrix))
 
-    glDrawArrays(GL_TRIANGLES, 0, 36)
+    time_location = glGetUniformLocation(rendering_program, "u_time")
+    glUniform1f(time_location, time)
+
+    mouse_location = glGetUniformLocation(rendering_program, "u_mouse")
+    glUniform2fv(mouse_location, 1, mouse_pos)
+
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 400)
+    # for i in range(10):
+    #     for j in range(10):
+    #         glUniformMatrix4fv(M_location, 1, GL_FALSE, glm.value_ptr(M_matrix))
+    #         glDrawArrays(GL_TRIANGLES, 0, 36)
+    #         M_matrix = glm.translate(M_matrix, glm.vec3(1.0, 0.0, 0.0));
+    #     M_matrix = glm.translate(M_matrix, glm.vec3(-10.0, 1.0, 0.0));
+        # M_matrix = glm.translate(M_matrix, glm.vec3(-10.0, 0.0, 0.0));
 
 
 def update_viewport(window, width, height):
@@ -199,6 +295,9 @@ def keyboard_key_callback(window, key, scancode, action, mods):
     if key == GLFW_KEY_ESCAPE and action == GLFW_PRESS:
         glfwSetWindowShouldClose(window, GLFW_TRUE)
 
+def mouse_motion_callback(window, x_pos, y_pos):
+    global mouse_pos
+    mouse_pos = (x_pos, y_pos)
 
 def glfw_error_callback(error, description):
     print('GLFW Error:', description)
@@ -224,6 +323,7 @@ def main():
     glfwMakeContextCurrent(window)
     glfwSetFramebufferSizeCallback(window, update_viewport)
     glfwSetKeyCallback(window, keyboard_key_callback)
+    glfwSetCursorPosCallback(window, mouse_motion_callback)
     glfwSwapInterval(1)
 
     startup()
